@@ -1,3 +1,4 @@
+from random import choice
 import pygame, sys
 from settings import *
 
@@ -12,21 +13,29 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.Surface((50,50))
         self.image.fill('green')
         self.rect = self.image.get_rect(center=(50,200))
+    
+    def move(self, dir):
+        # TODO add move animation
+        if dir == 'up':
+            self.rect.y -= 100
+        elif dir == 'down':
+            self.rect.y += 100
         
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, y_pos):
         super().__init__()
         self.image = pygame.Surface((50,50))
         self.image.fill('crimson')
         self.rect = self.image.get_rect()
-        self.rect.x = 600
-        self.rect.y = 50
+        self.rect.center = (1000,y_pos)
     
     def update(self):
         self.rect.x -= 5
+        if self.rect.x <= -50:
+            self.kill()
 
 player = Player()
-enemy = Enemy()
+enemy = Enemy(100)
 
 players = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
@@ -43,10 +52,20 @@ while True:
             sys.exit()
 
         if event.type == enemy_timer:
-            enemies.add(Enemy())
+            y_pos = choice([100,200,300])
+            enemies.add(Enemy(y_pos))
+        
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_DOWN:
+                player.move('down')
+            if event.key == pygame.K_UP:
+                player.move('up')
+
+        
+
     screen.fill('black')
     players.update()
-    enemies.update()   
+    enemies.update()
     players.draw(screen)
     enemies.draw(screen)
 
