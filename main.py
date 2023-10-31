@@ -13,13 +13,48 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.Surface((50,50))
         self.image.fill('green')
         self.rect = self.image.get_rect(center=(50,200))
-    
-    def move(self, dir):
-        # TODO add move animation
-        if dir == 'up':
-            self.rect.y -= 100
-        elif dir == 'down':
-            self.rect.y += 100
+
+        self.moving = False
+        self.direction = ''
+        self.moving_start_time = pygame.time.get_ticks()
+
+    def player_input(self):
+        if event.type == pygame.KEYDOWN:
+            if not self.moving:
+                self.moving = True
+                self.moving_start_time = pygame.time.get_ticks()
+                if event.key == pygame.K_DOWN:
+                    print('here')
+                    self.direction = 'down'
+                if event.key == pygame.K_UP:
+                    self.direction = 'up'
+
+    def move_player(self):
+        # TODO line up movement with enemies
+        if self.moving:
+            if self.direction == 'up':
+                self.rect.y -= 3
+            elif self.direction == 'down':
+                self.rect.y += 3
+
+    def cooldowns(self):
+        print(self.moving)
+        current_time = pygame.time.get_ticks()
+        if self.moving:
+            if current_time - self.moving_start_time >= 500:
+                self.moving = False
+
+    def update(self):
+        self.player_input()
+        self.move_player()
+        self.cooldowns()
+        
+    # def move(self, dir):
+    #     # TODO add move animation/timer
+    #     if dir == 'up':
+            
+    #     elif dir == 'down':
+            
         
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, y_pos):
@@ -34,12 +69,14 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.x <= -50:
             self.kill()
 
-player = Player()
-enemy = Enemy(100)
+def collision_sprite():
+    if pygame.sprite.spritecollide(player.sprite, enemies, False):
+        print('collision')
 
-players = pygame.sprite.Group()
+enemy = Enemy(100)
+player = pygame.sprite.GroupSingle()
 enemies = pygame.sprite.Group()
-players.add(player)
+player.add(Player())
 enemies.add(enemy)
 
 enemy_timer = pygame.USEREVENT + 1
@@ -54,21 +91,13 @@ while True:
         if event.type == enemy_timer:
             y_pos = choice([100,200,300])
             enemies.add(Enemy(y_pos))
-        
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                player.move('down')
-            if event.key == pygame.K_UP:
-                player.move('up')
-
-        
-
+    
     screen.fill('black')
-    players.update()
+    player.update()
     enemies.update()
-    players.draw(screen)
+    player.draw(screen)
     enemies.draw(screen)
-
+    collision_sprite()
     pygame.display.update()
     
     clock.tick(60)
